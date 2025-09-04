@@ -5,6 +5,11 @@ import { GoogleLogin } from "@react-oauth/google";
 import logo from "../assets/logo.png";
 import defaultAvatar from "../assets/default-avatar.png";
 
+const API =
+  (import.meta?.env?.VITE_API_BASE_URL) ||
+  (process.env.NEXT_PUBLIC_API_BASE_URL) ||
+  "http://localhost:5000";
+
 // ---- Theme ----
 const BG = {
   page: "#0B0C0E",
@@ -59,6 +64,18 @@ export default function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // keep cookie + localStorage in sync for user identity
+  function persistIdentity(userEmail, userObj) {
+    // canonical key for backend header helpers
+    localStorage.setItem("user_email", userEmail);
+    // keep your existing keys so nothing else breaks
+    localStorage.setItem("userEmail", userEmail);
+    localStorage.setItem("user", JSON.stringify(userObj));
+
+    // lightweight client cookie (read by your API client to set X-User-Email)
+    document.cookie = `user_email=${encodeURIComponent(userEmail)}; Max-Age=31536000; SameSite=Lax; Path=/`;
+  }
+
   // Prefill remembered email
   useEffect(() => {
     const saved = localStorage.getItem("rememberEmail");
@@ -82,9 +99,10 @@ export default function Login() {
     setError("");
     try {
       const token = credentialResponse.credential;
-      const res = await fetch("http://localhost:5000/api/oauth/google", {
+      const res = await fetch(`${API}/api/oauth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ credential: token }),
       });
       const data = await res.json();
@@ -93,20 +111,23 @@ export default function Login() {
         setSubmitting(false);
         return;
       }
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: data.user.email,
-          name: data.user.name,
-          logo: data.user.logo || defaultAvatar,
-          businessType: data.user.businessType,
-        })
-      );
-      localStorage.setItem("userEmail", data.user.email);
+
+      const u = {
+        email: data.user.email,
+        name: data.user.name,
+        logo: data.user.logo || defaultAvatar,
+        businessType: data.user.businessType,
+      };
+      persistIdentity(data.user.email, u);
+
       if (remember) {
         localStorage.setItem("rememberEmail", data.user.email);
         localStorage.setItem("rememberFlag", "1");
+      } else {
+        localStorage.removeItem("rememberEmail");
+        localStorage.setItem("rememberFlag", "0");
       }
+
       navigate("/app");
     } catch {
       setError("Google login error.");
@@ -125,9 +146,10 @@ export default function Login() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`${API}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
@@ -136,16 +158,15 @@ export default function Login() {
         setSubmitting(false);
         return;
       }
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email,
-          businessType: data.user.businessType,
-          name: data.user.name,
-          logo: data.user.logo || defaultAvatar,
-        })
-      );
-      localStorage.setItem("userEmail", email);
+
+      const u = {
+        email,
+        businessType: data.user.businessType,
+        name: data.user.name,
+        logo: data.user.logo || defaultAvatar,
+      };
+      persistIdentity(email, u);
+
       if (remember) {
         localStorage.setItem("rememberEmail", email);
         localStorage.setItem("rememberFlag", "1");
@@ -153,6 +174,7 @@ export default function Login() {
         localStorage.removeItem("rememberEmail");
         localStorage.setItem("rememberFlag", "0");
       }
+
       navigate("/app");
     } catch {
       setError("Login error.");
