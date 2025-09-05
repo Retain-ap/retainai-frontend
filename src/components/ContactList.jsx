@@ -11,7 +11,7 @@ function ContactList() {
 
   const fetchLeads = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:5000/leads?username=demo');
+      const response = await axios.get(`${API_BASE}/leads?username=demo`);
       setLeads(response.data || []);
     } catch (error) {
       console.error('Error fetching leads:', error);
@@ -27,7 +27,7 @@ function ContactList() {
     if (!newLead.lead_username || !newLead.email) return;
 
     try {
-      await axios.post('http://127.0.0.1:5000/submit-lead', {
+      await axios.post(`${API_BASE}/submit-lead`, {
         username: 'demo',
         ...newLead
       });

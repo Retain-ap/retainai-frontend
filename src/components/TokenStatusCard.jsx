@@ -5,7 +5,7 @@ function TokenStatusCard() {
   const [status, setStatus] = useState(null);
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:5000/health')
+    axios.get(`${API_BASE}/api/automations/health`) // or /api/whatsapp/health
       .then(response => {
         setStatus(response.data);
       })
