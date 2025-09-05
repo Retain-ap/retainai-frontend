@@ -7,10 +7,25 @@ const demoLeads = [
   { id: 2, name: "Ali Rahman", tags: [], phone: "+1987654321" },
 ];
 
+// ---- API base (CRA + Vite safe) ----
+const API_BASE =
+  (typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    import.meta.env.VITE_API_BASE_URL) ||
+  (typeof process !== "undefined" &&
+    process.env &&
+    process.env.REACT_APP_API_BASE) ||
+  (typeof window !== "undefined" &&
+  window.location &&
+  window.location.hostname.includes("localhost")
+    ? "http://localhost:5000"
+    : "https://retainai-app.onrender.com");
+
+
 // --- Helper: Simulate backend NLP/AI extraction ---
 // Replace with a real API POST if you want (see comment below)
 async function extractAppointmentFromMessage(message) {
-  const res = await fetch("http://localhost:5000/api/extract-appointment", {
+  const res = await fetch(`${API_BASE}/api/extract-appointment`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message }),

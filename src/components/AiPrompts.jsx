@@ -17,6 +17,20 @@ const TONE_OPTIONS = [
   { key: "caring", label: "Caring" }
 ];
 
+// ---- API base (CRA + Vite safe) ----
+const API_BASE =
+  (typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    import.meta.env.VITE_API_BASE_URL) ||
+  (typeof process !== "undefined" &&
+    process.env &&
+    process.env.REACT_APP_API_BASE) ||
+  (typeof window !== "undefined" &&
+  window.location &&
+  window.location.hostname.includes("localhost")
+    ? "http://localhost:5000"
+    : "https://retainai-app.onrender.com");
+
 export default function AiPromptsDashboard({
   leads = [],
   user = {},
@@ -71,7 +85,7 @@ Explain your reasoning in 2 sentences below the message.
   const handleGenerate = async () => {
     setLoading(true); setError(""); setPromptResult(""); setAiReason("");
     try {
-      const response = await fetch("http://localhost:5000/api/generate_prompt", {
+      const response = await fetch(`${API_BASE}/api/generate_prompt`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

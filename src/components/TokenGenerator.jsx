@@ -1,5 +1,19 @@
 import { useState } from "react";
 
+// ---- API base (CRA + Vite safe) ----
+const API_BASE =
+  (typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    import.meta.env.VITE_API_BASE_URL) ||
+  (typeof process !== "undefined" &&
+    process.env &&
+    process.env.REACT_APP_API_BASE) ||
+  (typeof window !== "undefined" &&
+  window.location &&
+  window.location.hostname.includes("localhost")
+    ? "http://localhost:5000"
+    : "https://retainai-app.onrender.com");
+
 export default function TokenGenerator() {
   const [shortToken, setShortToken] = useState("");
   const [longToken, setLongToken] = useState("");
@@ -18,7 +32,7 @@ export default function TokenGenerator() {
         setStatus("✅ Long-lived token generated!");
 
         // Save token to backend
-        const saveRes = await fetch("http://localhost:5000/store-token", {
+        const saveRes = await fetch(`${API_BASE}/store-token`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: data.access_token }),

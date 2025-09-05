@@ -1,11 +1,26 @@
 import React, { useEffect, useState } from "react";
 
+// ---- API base (CRA + Vite safe) ----
+const API_BASE =
+  (typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    import.meta.env.VITE_API_BASE_URL) ||
+  (typeof process !== "undefined" &&
+    process.env &&
+    process.env.REACT_APP_API_BASE) ||
+  (typeof window !== "undefined" &&
+  window.location &&
+  window.location.hostname.includes("localhost")
+    ? "http://localhost:5000"
+    : "https://retainai-app.onrender.com");
+
 export default function TeamSettings({ user }) {
   const [members, setMembers] = useState([]);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
   const [inviteLink, setInviteLink] = useState(null);
-  const apiBase = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const apiBase = API_BASE;
+
 
   async function loadMembers() {
     const res = await fetch(`${apiBase}/api/team/members`, { headers: { "X-User-Email": user?.email || "" }});

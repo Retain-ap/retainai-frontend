@@ -1,12 +1,26 @@
 // src/components/ImportContacts.jsx
 import React, { useState } from "react";
 
+// ---- API base (CRA + Vite safe) ----
+const API_BASE =
+  (typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    import.meta.env.VITE_API_BASE_URL) ||
+  (typeof process !== "undefined" &&
+    process.env &&
+    process.env.REACT_APP_API_BASE) ||
+  (typeof window !== "undefined" &&
+  window.location &&
+  window.location.hostname.includes("localhost")
+    ? "http://localhost:5000"
+    : "https://retainai-app.onrender.com");
+
 export default function ImportContacts({ user }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const apiBase = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+  const apiBase = API_BASE;
 
   async function handlePreview() {
     if (!file) return;
